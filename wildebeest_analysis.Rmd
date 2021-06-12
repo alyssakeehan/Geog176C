@@ -1,0 +1,307 @@
+---
+title: "R Stuff"
+author: "Alyssa Keehan"
+date: "5/26/2021"
+output: 
+  pdf_document: 
+    latex_engine: xelatex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Process
+For our my GIS Applications class, we worked on a quarter long project dealing with the movement of animals. Although our intended project never worked out, we were able to implement our primary methods on a different dataset involving the movements of Wildebeests in the Serengeti Nationl Park.
+
+# Animals
+Below, I cleaned the data for 5 wildebeests. Each dataset includes the intersection, union, jaccard index and time difference for each combination and time interval we have measurements of. 
+
+## Wildebeest 2836
+```{r}
+data_2836 <- read_csv('2836.csv')
+new_2836 <- read_csv('2836_new.csv')
+data_2836$Type <- as.factor(data_2836$Type)
+data_2836[6,20] <- 1
+new_2836
+```
+### Data Cleaning for Wildebeest 2836
+```{r}
+one_week_2836 <- data_2836[1:78,c(4,8,7)]
+two_week_2836 <- data_2836[1:15,c(10,14,13)]
+three_week_2836 <- data_2836[1:6,c(16,20,19)]
+ten_day_2836 <- new_2836[1:36,c(1,5,4)]
+eighteen_day_2836 <- new_2836[1:10,c(6,10,9)]
+colnames(one_week_2836) <- c('one_week_comb','time_since_first_1','jaccard_2')
+colnames(two_week_2836) <- c('two_week_comb','time_since_first','jaccard_1')
+colnames(three_week_2836) <- c('three_week_comb','time_since_first_2','jaccard_3')
+colnames(ten_day_2836) <- c('ten_day_comb', 'time_since_first','jaccard')
+colnames(eighteen_day_2836) <- c('eighteen_day_comb', 'time_since_first','jaccard')
+one_week_2836
+two_week_2836
+three_week_2836
+ten_day_2836
+eighteen_day_2836
+```
+### Regression and Time Series Analysis of Wildebeest 2836
+```{r,fig.width = 8}
+ggplot(one_week_2836,aes(x = time_since_first_1,y = jaccard_2)) + geom_point() + geom_smooth(method=lm, se = FALSE) + ggtitle('Comparing the Jaccard Index to the time since the areas covered: Correlation Coefficient',paste(cor(one_week_2836$jaccard_2,one_week_2836$time_since_first_1))) + xlab('Number of Weeks Since the Comparison')
+
+ggplot(ten_day_2836,aes(x = time_since_first,y = jaccard)) + geom_point() + geom_smooth(method=lm, se = FALSE) + ggtitle('Comparing the Jaccard Index to the time since the areas covered: Correlation Coefficient',paste(cor(ten_day_2836$jaccard,ten_day_2836$time_since_first))) + xlab('Number of Ten Day Intervals Since the Comparison')
+
+ggplot(two_week_2836,aes(x = time_since_first,y = jaccard_1)) + geom_point() + geom_smooth(method=lm, se = FALSE) + ggtitle('Comparing the Jaccard Index to the time since the areas covered: Correlation Coefficient',paste(cor(two_week_2836$jaccard_1,two_week_2836$time_since_first))) + xlab('Number of Two Week Intervals Since the Comparison')
+
+ggplot(eighteen_day_2836,aes(x = time_since_first,y = jaccard)) + geom_point() + geom_smooth(method=lm, se = FALSE) + ggtitle('Comparing the Jaccard Index to the time since the areas covered: Correlation Coefficient',paste(cor(eighteen_day_2836$jaccard,eighteen_day_2836$time_since_first))) + xlab('Number of Eighteen Day Intervals Since the Comparison')
+
+ggplot(three_week_2836,aes(x = time_since_first_2,y = jaccard_3)) + geom_point() + geom_smooth(method=lm, se = FALSE) + ggtitle('Comparing the Jaccard Index to the time since the areas covered: Correlation Coefficient',paste(cor(three_week_2836$jaccard_3,three_week_2836$time_since_first_2))) + xlab('Number of Three Week Intervals Since the Comparison')
+
+```
+### Extra Tidying with Wildebeest 2836
+```{r}
+week_2836 <- data_2836[1:13,1:2]
+week_2836$Type <- factor(week_2836$Type,levels = week_2836$Type)
+two_week_2836 <- data_2836[16:21,1:2]
+two_week_2836$Type <- factor(two_week_2836$Type,levels = two_week_2836$Type)
+three_week_2836 <- data_2836[23:26,1:2]
+three_week_2836$Type <- factor(three_week_2836$Type,levels = three_week_2836$Type)
+week_2836
+two_week_2836
+three_week_2836 
+```
+### Barchart of Movements for Wildebeest 2836
+```{r fig.height = 7, fig.width = 12}
+ggplot(week_2836, aes(x=Type, y = Shape_Area)) + geom_bar(stat = 'identity', fill = "wheat", color = "purple") + ggtitle('Wildbeest 2836 Grazing Movement Area by every week') + ylab('Shape Area') + xlab('Each Week from June 2011 - August 2011')
+ggplot(two_week_2836, aes(x=Type, y = Shape_Area)) + geom_bar(stat = 'identity', fill = "wheat", color = "purple") + ggtitle('Wildbeest 2836 Grazing Movement Area by every two weeks') + ylab('Shape Area') + xlab('Each Two Week interval from June 2011 - August 2011')
+ggplot(three_week_2836, aes(x=Type, y = Shape_Area)) + geom_bar(stat = 'identity', fill = "wheat", color = "purple") + ggtitle('Wildbeest 2836 Grazing Movement Area by every three weeks') + ylab('Shape Area') + xlab('Each Three Week Interval from June 2011 - August 2011')
+```
+### Calculate the Mean Jaccard Self-Similarity Indexes for Wildebeest 2836
+```{r}
+mean_jaccards_2836 <- as.data.frame(c(mean(one_week_2836$jaccard_2), mean(ten_day_2836$jaccard), mean(two_week_2836$jaccard_1),mean(eighteen_day_2836$jaccard), mean(three_week_2836$jaccard_3)))
+mean_jaccards_2836['time_length'] <- c('One Week','Ten Days','Two Weeks','Eighteen Days','Three Weeks')
+colnames(mean_jaccards_2836) <- c('jaccard','time_length')
+mean_jaccards_2836$time_length <- factor(mean_jaccards_2836$time_length,levels = mean_jaccards_2836$time_length)
+mean_jaccards_2836
+```
+### Plotting the Mean Jaccard Indexes for Wildebeest 2836
+```{r}
+ggplot(mean_jaccards_2836, aes(x=time_length, y = jaccard)) + geom_bar(stat = 'identity', fill = "wheat", color = "purple") + ggtitle('Mean Jaccard Indexes for Wildebeest 2836 by Time Interval') + ylab('Mean Jaccard Index') + xlab('Time Interval')
+```
+
+## Wildebeest 2829 
+```{r}
+data_2829 <- read_csv('2829.csv')
+new_2829 <- read_csv('2829_new.csv')
+data_2829
+new_2829
+```
+```{r}
+one_week_2829 <- data_2829[1:78,c(10,13,14)]
+two_week_2829 <- data_2829[1:15,c(3,6,7)]
+three_week_2829 <- data_2829[1:6,c(17,20,21)]
+ten_day_2829 <- new_2829[1:36,c(1,4,5)]
+eighteen_day_2829 <- new_2829[1:10,c(6,10,9)]
+one_week_2829
+two_week_2829
+three_week_2829
+ten_day_2829
+eighteen_day_2829
+```
+### Regression and Time Series Analysis of Wildebeest 2829
+```{r,fig.width = 8}
+ggplot(one_week_2829,aes(x = time_since_first_1,y = jaccard_2)) + geom_point() + geom_smooth(method=lm, se = FALSE) + ggtitle('Comparing the Jaccard Index to the time since the areas covered: Correlation Coefficient',paste(cor(one_week_2829$jaccard_2,one_week_2829$time_since_first_1))) + xlab('Number of Weeks Since the Comparison')
+
+ggplot(ten_day_2829,aes(x = time_since_first,y = jaccard_4)) + geom_point() + geom_smooth(method=lm, se = FALSE) + ggtitle('Comparing the Jaccard Index to the time since the areas covered: Correlation Coefficient',paste(cor(ten_day_2829$jaccard_4,ten_day_2829$time_since_first))) + xlab('Number of 10 DayIntervals Since the Comparison')
+
+ggplot(two_week_2829,aes(x = time_since_first,y = jaccard_1)) + geom_point() + geom_smooth(method=lm, se = FALSE) + ggtitle('Comparing the Jaccard Index to the time since the areas covered: Correlation Coefficient',paste(cor(two_week_2829$jaccard_1,two_week_2829$time_since_first))) + xlab('Number of Two Week Intervals Since the Comparison')
+
+ggplot(eighteen_day_2829,aes(x = time_since,y = jaccard)) + geom_point() + geom_smooth(method=lm, se = FALSE) + ggtitle('Comparing the Jaccard Index to the time since the areas covered: Correlation Coefficient',paste(cor(eighteen_day_2829$jaccard,eighteen_day_2829$time_since))) + xlab('Number of 18 DayIntervals Since the Comparison')
+
+ggplot(three_week_2829,aes(x = time_since_first_2,y = jaccard_3)) + geom_point() + geom_smooth(method=lm, se = FALSE) + ggtitle('Comparing the Jaccard Index to the time since the areas covered: Correlation Coefficient',paste(cor(three_week_2829$jaccard_3,three_week_2829$time_since_first_2))) + xlab('Number of Three Week Intervals Since the Comparison')
+```
+```{r}
+mean_jaccards_2829 <- as.data.frame(c(mean(one_week_2829$jaccard_2) ,mean(ten_day_2829$jaccard_4), mean(two_week_2829$jaccard_1), mean(eighteen_day_2829$jaccard),mean(three_week_2829$jaccard_3)))
+mean_jaccards_2829['time_length'] <- c('One Week','Ten Days','Two Weeks','18 Days','Three Weeks')
+colnames(mean_jaccards_2829) <- c('jaccard','time_length')
+mean_jaccards_2829$time_length <- factor(mean_jaccards_2829$time_length,levels = mean_jaccards_2829$time_length)
+mean_jaccards_2829
+```
+```{r}
+ggplot(mean_jaccards_2829, aes(x=time_length, y = jaccard)) + geom_bar(stat = 'identity', fill = "wheat", color = "purple") + ggtitle('Mean Jaccard Indexes for Wildebeest 2829 by Time Interval') + ylab('Mean Jaccard Index') + xlab('Time Interval')
+```
+
+## Wildebeest 2831
+```{r}
+data_2831 <- read_csv('2831.csv')
+new_2831 <- read_csv('2831_new.csv')
+data_2831
+new_2831
+```
+
+```{r}
+one_week_2831 <- data_2831[1:78,c(12,13,14)]
+two_week_2831 <- data_2831[1:15,c(5,6,7)]
+three_week_2831 <- data_2831[1:6,c(17,20,21)]
+ten_day_2831 <- new_2831[1:36,c(1,4,5)]
+eighteen_2831 <- new_2831[1:10,c(6,10,9)]
+one_week_2831
+two_week_2831
+three_week_2831
+ten_day_2831
+eighteen_2831
+```
+
+```{r}
+ggplot(one_week_2831,aes(x = time_since_first_1,y = jaccard_2)) + geom_point() + geom_smooth(method=lm, se = FALSE) + ggtitle('Comparing the Jaccard Index to the time since the areas covered: Correlation Coefficient',paste(cor(one_week_2831$jaccard_2,one_week_2831$time_since_first_1))) + xlab('Number of Weeks Since the Comparison')
+
+ggplot(ten_day_2831,aes(x = time_since_first,y = jaccard_4)) + geom_point() + geom_smooth(method=lm, se = FALSE) + ggtitle('Comparing the Jaccard Index to the time since the areas covered: Correlation Coefficient',paste(cor(ten_day_2831$jaccard_4,ten_day_2831$time_since_first))) + xlab('Number of 10 Day Intervals Since the Comparison')
+
+ggplot(two_week_2831,aes(x = time_since_first,y = jaccard_1)) + geom_point() + geom_smooth(method=lm, se = FALSE) + ggtitle('Comparing the Jaccard Index to the time since the areas covered: Correlation Coefficient',paste(cor(two_week_2831$jaccard_1,two_week_2831$time_since_first))) + xlab('Number of Two Week Intervals Since the Comparison')
+
+ggplot(eighteen_2831,aes(x = time_since,y = jaccard)) + geom_point() + geom_smooth(method=lm, se = FALSE) + ggtitle('Comparing the Jaccard Index to the time since the areas covered: Correlation Coefficient',paste(cor(eighteen_2831$jaccard,eighteen_2831$time_since))) + xlab('Number of 18 Day Intervals Since the Comparison')
+
+ggplot(three_week_2831,aes(x = time_since_first_2,y = jaccard_3)) + geom_point() + geom_smooth(method=lm, se = FALSE) + ggtitle('Comparing the Jaccard Index to the time since the areas covered: Correlation Coefficient',paste(cor(three_week_2831$jaccard_3,three_week_2831$time_since_first_2))) + xlab('Number of Three Week Intervals Since the Comparison')
+```
+```{r}
+mean_jaccards_2831 <- as.data.frame(c(mean(one_week_2831$jaccard_2),mean(ten_day_2831$jaccard_4) ,mean(two_week_2831$jaccard_1), mean(eighteen_2831$jaccard) ,mean(three_week_2831$jaccard_3)))
+mean_jaccards_2831['time_length'] <- c('One Week','10 Days','Two Weeks','18 Days','Three Weeks')
+colnames(mean_jaccards_2831) <- c('jaccard','time_length')
+mean_jaccards_2831$time_length <- factor(mean_jaccards_2831$time_length,levels = mean_jaccards_2831$time_length)
+mean_jaccards_2831
+```
+```{r}
+ggplot(mean_jaccards_2831, aes(x=time_length, y = jaccard)) + geom_bar(stat = 'identity', fill = "wheat", color = "purple") + ggtitle('Mean Jaccard Indexes for Wildebeest 2831 by Time Interval') + ylab('Mean Jaccard Index') + xlab('Time Interval')
+```
+## Wildebeest 2834
+```{r}
+data_2834 <- read_csv('2834.csv')
+data_2834
+```
+```{r}
+one_week_2834 <- data_2834[1:78,c(12,13,14)]
+ten_day_2834 <- data_2834[1:36,c(24,27,28)]
+two_week_2834 <- data_2834[1:15,c(5,6,7)]
+eighteen_2834 <- data_2834[1:10,c(29,35,34)]
+three_week_2834 <- data_2834[1:6,c(17,20,21)]
+one_week_2834
+ten_day_2834
+two_week_2834
+eighteen_2834
+three_week_2834
+```
+```{r}
+ggplot(one_week_2834,aes(x = time_since_first_1,y = jaccard_2)) + geom_point() + geom_smooth(method=lm, se = FALSE) + ggtitle('Comparing the Jaccard Index to the time since the areas covered: Correlation Coefficient',paste(cor(one_week_2834$jaccard_2,one_week_2834$time_since_first_1))) + xlab('Number of One Week Intervals Since the Comparison')
+
+ggplot(ten_day_2834,aes(x = time_since_first_3,y = jaccard_4)) + geom_point() + geom_smooth(method=lm, se = FALSE) + ggtitle('Comparing the Jaccard Index to the time since the areas covered: Correlation Coefficient',paste(cor(ten_day_2834$jaccard_4,ten_day_2834$time_since_first_3))) + xlab('Number of 10 Day Intervals Since the Comparison')
+
+ggplot(two_week_2834,aes(x = time_since_first,y = jaccard_1)) + geom_point() + geom_smooth(method=lm, se = FALSE) + ggtitle('Comparing the Jaccard Index to the time since the areas covered: Correlation Coefficient',paste(cor(two_week_2834$jaccard_1,two_week_2834$time_since_first))) + xlab('Number of Two Week Intervals Since the Comparison')
+
+ggplot(eighteen_2834,aes(x = time_since,y = jaccard)) + geom_point() + geom_smooth(method=lm, se = FALSE) + ggtitle('Comparing the Jaccard Index to the time since the areas covered: Correlation Coefficient',paste(cor(eighteen_2834$jaccard,eighteen_2834$time_since))) + xlab('Number of 18 Day Intervals Since the Comparison')
+
+ggplot(three_week_2834,aes(x = time_since_first_2,y = jaccard_3)) + geom_point() + geom_smooth(method=lm, se = FALSE) + ggtitle('Comparing the Jaccard Index to the time since the areas covered: Correlation Coefficient',paste(cor(three_week_2834$jaccard_3,three_week_2834$time_since_first_2))) + xlab('Number of Three Week Intervals Since the Comparison')
+```
+```{r}
+mean_jaccards_2834 <- as.data.frame(c(mean(one_week_2834$jaccard_2),mean(ten_day_2834$jaccard_4) ,mean(two_week_2834$jaccard_1), mean(eighteen_2834$jaccard) ,mean(three_week_2834$jaccard_3)))
+mean_jaccards_2834['time_length'] <- c('One Week','10 Days','Two Weeks','18 Days','Three Weeks')
+colnames(mean_jaccards_2834) <- c('jaccard','time_length')
+mean_jaccards_2834$time_length <- factor(mean_jaccards_2834$time_length,levels = mean_jaccards_2834$time_length)
+mean_jaccards_2834
+```
+```{r}
+ggplot(mean_jaccards_2834, aes(x=time_length, y = jaccard)) + geom_bar(stat = 'identity', fill = "wheat", color = "purple") + ggtitle('Mean Jaccard Indexes for Wildebeest 2834 by Time Interval') + ylab('Mean Jaccard Index') + xlab('Time Interval')
+```
+## Wildebeest 2839
+```{r}
+data_2839 <- read_csv('2839.csv')
+data_2839
+```
+```{r}
+one_week_2839 <- data_2839[1:78,c(19,20,21)]
+ten_day_2839 <- data_2839[1:36,c(3,6,7)]
+two_week_2839 <- data_2839[1:15,c(12,13,14)]
+eighteen_2839 <- data_2839[1:10,c(29,35,34)]
+three_week_2839 <- data_2839[1:6,c(24,27,28)]
+one_week_2839
+ten_day_2839
+two_week_2839
+eighteen_2839
+three_week_2839
+```
+```{r}
+ggplot(one_week_2839,aes(x = time_since_first_2,y = jaccard_2)) + geom_point() + geom_smooth(method=lm, se = FALSE) + ggtitle('Comparing the Jaccard Index to the time since the areas covered: Correlation Coefficient',paste(cor(one_week_2839$jaccard_2,one_week_2839$time_since_first_2))) + xlab('Number of One Week Intervals Since the Comparison')
+
+ggplot(ten_day_2839,aes(x = time_since_first,y = jaccard_4)) + geom_point() + geom_smooth(method=lm, se = FALSE) + ggtitle('Comparing the Jaccard Index to the time since the areas covered: Correlation Coefficient',paste(cor(ten_day_2839$jaccard_4,ten_day_2839$time_since_first))) + xlab('Number of 10 Day Intervals Since the Comparison')
+
+ggplot(two_week_2839,aes(x = time_since_first_1,y = jaccard_1)) + geom_point() + geom_smooth(method=lm, se = FALSE) + ggtitle('Comparing the Jaccard Index to the time since the areas covered: Correlation Coefficient',paste(cor(two_week_2839$jaccard_1,two_week_2839$time_since_first_1))) + xlab('Number of Two Week Intervals Since the Comparison')
+
+ggplot(eighteen_2839,aes(x = time_since,y = jaccard)) + geom_point() + geom_smooth(method=lm, se = FALSE) + ggtitle('Comparing the Jaccard Index to the time since the areas covered: Correlation Coefficient',paste(cor(eighteen_2839$jaccard,eighteen_2839$time_since))) + xlab('Number of 18 Day Intervals Since the Comparison')
+
+ggplot(three_week_2839,aes(x = time_since_first_3,y = jaccard_3)) + geom_point() + geom_smooth(method=lm, se = FALSE) + ggtitle('Comparing the Jaccard Index to the time since the areas covered: Correlation Coefficient',paste(cor(three_week_2839$jaccard_3,three_week_2839$time_since_first_3))) + xlab('Number of Three Week Intervals Since the Comparison')
+```
+```{r}
+mean_jaccards_2839 <- as.data.frame(c(mean(one_week_2839$jaccard_2),mean(ten_day_2839$jaccard_4) ,mean(two_week_2839$jaccard_1), mean(eighteen_2839$jaccard) ,mean(three_week_2839$jaccard_3)))
+mean_jaccards_2839['time_length'] <- c('One Week','10 Days','Two Weeks','18 Days','Three Weeks')
+colnames(mean_jaccards_2839) <- c('jaccard','time_length')
+mean_jaccards_2839$time_length <- factor(mean_jaccards_2839$time_length,levels = mean_jaccards_2839$time_length)
+mean_jaccards_2839
+```
+```{r}
+ggplot(mean_jaccards_2839, aes(x=time_length, y = jaccard)) + geom_bar(stat = 'identity', fill = "wheat", color = "purple") + ggtitle('Mean Jaccard Indexes for Wildebeest 2839 by Time Interval') + ylab('Mean Jaccard Index') + xlab('Time Interval')
+```
+```{r}
+eighteen_day_2829
+eighteen_2831
+colnames(eighteen_2834) <- colnames(eighteen_day_2829)
+eighteen_day_2836
+eighteen_2839
+```
+
+```{r}
+colnames(one_week_2839) <- colnames(one_week_2829)
+colnames(ten_day_2839) <- colnames(ten_day_2829)
+colnames(two_week_2839) <- colnames(two_week_2829)
+colnames(eighteen_2839) <- colnames(eighteen_day_2829)
+colnames(three_week_2839) <- colnames(three_week_2829)
+```
+
+# Aggregate the Data
+For this last part, I took all the data and appended them into one table each for the same time interval.
+```{r}
+one_week <- rbind(one_week_2829,one_week_2831,one_week_2834, one_week_2836,one_week_2839)
+two_week <- rbind(two_week_2829,two_week_2831,two_week_2834, two_week_2836,two_week_2839)
+three_week <- rbind(three_week_2829,three_week_2831,three_week_2834, three_week_2836,three_week_2839)
+ten_day <- rbind(ten_day_2829,ten_day_2831,ten_day_2834, ten_day_2836,ten_day_2839)
+eighteen_day <- rbind(eighteen_day_2829,eighteen_2831,eighteen_2834, eighteen_day_2836,eighteen_2839)
+one_week
+ten_day
+two_week
+eighteen_day
+three_week
+```
+
+```{r}
+ggplot(one_week,aes(x = time_since_first_1,y = jaccard_2)) + geom_point() + geom_smooth(method=lm, se = FALSE) + ggtitle('Comparing the Jaccard Index to the time since the areas covered: Correlation Coefficient',paste(cor(one_week_2836$jaccard_2,one_week_2836$time_since_first_1))) + xlab('Number of Weeks Since the Comparison')
+
+ggplot(ten_day,aes(x = time_since_first,y = jaccard)) + geom_point() + geom_smooth(method=lm, se = FALSE) + ggtitle('Comparing the Jaccard Index to the time since the areas covered: Correlation Coefficient',paste(cor(ten_day$jaccard,ten_day$time_since_first))) + xlab('Number of 10 Day Intervals Since the Comparison')
+
+ggplot(two_week,aes(x = time_since_first,y = jaccard_1)) + geom_point() + geom_smooth(method=lm, se = FALSE) + ggtitle('Comparing the Jaccard Index to the time since the areas covered: Correlation Coefficient',paste(cor(two_week_2836$jaccard_1,two_week_2836$time_since_first))) + xlab('Number of Two Week Intervals Since the Comparison')
+
+ggplot(eighteen_day,aes(x = time_since_first,y = jaccard)) + geom_point() + geom_smooth(method=lm, se = FALSE) + ggtitle('Comparing the Jaccard Index to the time since the areas covered: Correlation Coefficient',paste(cor(eighteen_day$jaccard,eighteen_day$time_since_first))) + xlab('Number of 18 Day Intervals Since the Comparison')
+
+ggplot(three_week,aes(x = time_since_first_2,y = jaccard_3)) + geom_point() + geom_smooth(method=lm, se = FALSE) + ggtitle('Comparing the Jaccard Index to the time since the areas covered: Correlation Coefficient',paste(cor(three_week_2836$jaccard_3,three_week_2836$time_since_first_2))) + xlab('Number of Three Week Intervals Since the Comparison')
+```
+
+```{r}
+mean_jaccards <- as.data.frame(c(mean(one_week$jaccard_2) ,mean(ten_day$jaccard),mean(two_week$jaccard_1), mean(eighteen_day$jaccard) ,mean(three_week$jaccard_3)))
+mean_jaccards['time_length'] <- c('One Week','10 Days','Two Weeks','18 Days','Three Weeks')
+colnames(mean_jaccards) <- c('jaccard','time_length')
+mean_jaccards$time_length <- factor(mean_jaccards$time_length,levels = mean_jaccards$time_length)
+mean_jaccards
+```
+
+```{r}
+ggplot(mean_jaccards, aes(x=time_length, y = jaccard)) + geom_bar(stat = 'identity', fill = "wheat", color = "purple") + ggtitle('Mean Jaccard Indexes for all Wildebeests by Time Interval') + ylab('Mean Jaccard Index') + xlab('Time Interval') +geom_text(aes(label=jaccard), position=position_dodge(width=0.5), vjust=-0.25)
+```
+
+
+
+
